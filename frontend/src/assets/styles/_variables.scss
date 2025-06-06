@@ -1,0 +1,16 @@
+@forward 'colors';
+@forward 'breakpoints';
+
+// Fonts
+$main-font-family: 'Inter', sans-serif;
+
+$base-font-size: 14px;
+$sm-font-size: 12px;
+$md-font-size: 16px;
+$lg-font-size: 18px;
+
+// Box-shadows
+$base-box-shadow: rgba(0, 0, 0, 0.502);
+
+// Transitions
+$base-transition: all 0.5s ease;
