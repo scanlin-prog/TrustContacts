@@ -1,0 +1,21 @@
+version: '3.8' # версия синтаксиса
+services:
+ express-app: # Сервер Express
+    build: 
+      context: ./backend # директория сборки (контекст)
+      dockerfile: Dockerfile  # имя файла описания контейнера (Dockerfile)
+    image: backend:dev  # имя будущего образа
+    container_name: backend # имя контейнера
+    ports:
+      - '3000:3000'
+    depends_on:
+      - db
+    env_file:
+      - express.env
+ db: # База данных
+    image: prismagraphql/mongo-single-replica:5.0.3
+    container_name: db
+    ports:
+      - '27017:27017'
+    env_file:
+      - db.env
