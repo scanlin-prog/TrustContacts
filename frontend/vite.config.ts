@@ -38,4 +38,7 @@ export default defineConfig({
   build: {
     minify: true,
   },
+  server: {
+    port: 8000,
+  },
 });

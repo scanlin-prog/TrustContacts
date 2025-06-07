@@ -21,6 +21,8 @@ router.post('/login', celebrate(loginValidation), UserController.login);
 
 router.use(authenticateToken);
 
+router.post('/logout', UserController.logout);
+
 router.get('/current', UserController.getCurrentUser);
 
 router.use('/', contactsRouter); // Маршруты постов

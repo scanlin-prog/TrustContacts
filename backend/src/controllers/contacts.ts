@@ -56,8 +56,11 @@ const ContactController = {
       }
 
       const contacts = await prisma.contact.findMany({
+        where: {
+          authorId: userId,
+        },
         orderBy: {
-          createdAt: 'desc', // сортировка по убыванию
+          createdAt: 'asc',
         },
       });
 
@@ -137,6 +140,42 @@ const ContactController = {
       const deletedContact = await prisma.contact.delete({ where: { id } });
 
       res.status(200).json({ id: deletedContact.id });
+    } catch (error) {
+      handleError(error, next);
+    }
+  },
+  searchContacts: async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const { query } = req.body;
+      const authorId = handleRequestUserId(req);
+
+      // Проверка обязательных полей
+      if (!query) {
+        throw new BadRequestError('Все поля обязательные!');
+      }
+
+      // Проверка существования id пользователя
+      if (!authorId) {
+        throw new NotFoundError('Не удалось найти пользователя');
+      }
+
+      const contacts = await prisma.contact.findMany({
+        where: {
+          name: query,
+        },
+      });
+
+      if (!contacts.length) {
+        throw new BadRequestError(
+          'Переданы некорретные данные, повторите запрос!',
+        );
+      }
+
+      res.status(200).json(contacts);
     } catch (error) {
       handleError(error, next);
     }

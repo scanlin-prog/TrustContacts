@@ -82,9 +82,19 @@ const createContactValidation = {
   }),
 };
 
+const searchContactsValidation = {
+  body: Joi.object().keys({
+    query: Joi.string().min(2).max(30).messages({
+      'string.min': 'Минимальное число символов равно 2',
+      'string.max': 'Максимальное число символов равно 30',
+    }),
+  }),
+};
+
 export {
   checkIdValidation,
   registerValidation,
   loginValidation,
   createContactValidation,
+  searchContactsValidation,
 };

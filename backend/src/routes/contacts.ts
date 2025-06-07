@@ -4,6 +4,7 @@ import { celebrate } from 'celebrate';
 import {
   createContactValidation,
   checkIdValidation,
+  searchContactsValidation,
 } from '@middlewares/validation';
 
 import ContactController from '@controllers/contacts';
@@ -25,6 +26,11 @@ contactsRouter.delete(
   '/contacts/:id',
   celebrate(checkIdValidation),
   ContactController.deleteContact,
+);
+contactsRouter.post(
+  '/search',
+  celebrate(searchContactsValidation),
+  ContactController.searchContacts,
 );
 
 export default contactsRouter;

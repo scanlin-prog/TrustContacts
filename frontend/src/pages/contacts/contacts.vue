@@ -190,7 +190,9 @@ onMounted(async () => {
 }
 
 .contacts-table__content-wrap {
-  overflow: scroll;
+  @include tablet {
+    overflow: scroll;
+  }
 }
 
 .contacts-table__content {

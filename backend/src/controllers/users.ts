@@ -111,6 +111,24 @@ const UserController = {
       handleError(error, next);
     }
   },
+  logout: async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const userId = handleRequestUserId(req);
+
+      // Проверка существования id пользователя
+      if (!userId) {
+        throw new NotFoundError('Не удалось найти пользователя');
+      }
+
+      res.status(200).json({ message: 'Вы успешно вышли из аккаунта' });
+    } catch (error) {
+      handleError(error, next);
+    }
+  },
   getCurrentUser: async (
     req: Request,
     res: Response,
