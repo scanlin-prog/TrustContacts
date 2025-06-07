@@ -21,6 +21,8 @@ dist-ssr
 
 # Enviroments
 *.env
+!.env.local
+
 
 # Logs
 logs
