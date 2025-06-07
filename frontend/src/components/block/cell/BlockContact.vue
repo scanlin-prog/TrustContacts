@@ -8,6 +8,8 @@ import BaseIcon from '@components/base/icon/BaseIcon.vue';
 
 import { useAppStore } from '@store/app';
 
+import { formatUnderstandableDateWithYear } from '@composables/useDateFormatter';
+
 import type { PropType } from 'vue';
 import type { IContact } from '@models/contact';
 
@@ -24,7 +26,7 @@ const props = defineProps({
 });
 
 // refs
-const { id, name, phone, email, tags, lastInteractive } = toRefs(props.data);
+const { id, name, phone, email, tags, lastInteraction } = toRefs(props.data);
 
 const stringTags = computed(() => {
   return tags.value.join(' ');
@@ -50,7 +52,9 @@ async function deleteContact() {
     <p class="contact__value">{{ phone }}</p>
     <p class="contact__value">{{ email }}</p>
     <p class="contact__value">{{ stringTags }}</p>
-    <p class="contact__value">{{ lastInteractive }}</p>
+    <p class="contact__value">
+      {{ formatUnderstandableDateWithYear(lastInteraction) }}
+    </p>
     <div class="contact__controls">
       <BaseButton class="contact__control" @click="editContact">
         <BaseIcon icon="edit" />
