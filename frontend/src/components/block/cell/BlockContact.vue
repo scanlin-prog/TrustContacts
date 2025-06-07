@@ -13,6 +13,7 @@ import type { IContact } from '@models/contact';
 
 // routes and stores
 const router = useRouter();
+const appStore = useAppStore();
 
 // props
 const props = defineProps({
@@ -33,6 +34,14 @@ const stringTags = computed(() => {
 function editContact() {
   router.push({ path: `/edit-contact/${id.value}` });
 }
+
+async function deleteContact() {
+  try {
+    await appStore.deleteContact(id.value);
+  } catch (error) {
+    console.error('Ошибка удаления контакта', error);
+  }
+}
 </script>
 
 <template>
@@ -46,7 +55,7 @@ function editContact() {
       <BaseButton class="contact__control" @click="editContact">
         <BaseIcon icon="edit" />
       </BaseButton>
-      <BaseButton class="contact__control">
+      <BaseButton class="contact__control" @click="deleteContact">
         <BaseIcon icon="trash" />
       </BaseButton>
     </div>

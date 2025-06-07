@@ -1,6 +1,12 @@
 import type { IContact, IContactFormData } from '@models/contact';
 
-export type IContactAddRequest = IContactFormData;
-export type IContactEditRequest = IContactFormData;
+export interface IContactResponse extends IContact {
+  authorId: string;
+  createdAt: string;
+}
 
-export type IContactsResponse = IContact[];
+export type IContactAddRequest = IContactFormData;
+
+export interface IContactDeleteResponse {
+  id: string;
+}

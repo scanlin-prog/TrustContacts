@@ -105,7 +105,7 @@ async function onSubmit() {
       phone: formData.phone.replace(/[-()\s]/g, ''),
     };
 
-    appStore.addContact(data);
+    await appStore.addContact(data);
 
     followToContacts();
   } catch {

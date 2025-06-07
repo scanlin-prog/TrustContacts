@@ -15,16 +15,19 @@ export const routes: readonly RouteRecordRaw[] = [
     name: 'Contacts',
     path: '/',
     component: Contacts,
+    meta: { requiresAuth: true },
   },
   {
     name: 'AddContact',
     path: '/add-contact',
     component: AddContact,
+    meta: { requiresAuth: true },
   },
   {
     name: 'EditContact',
     path: '/edit-contact/:id',
     component: EditContact,
+    meta: { requiresAuth: true },
     props: true,
   },
 ];

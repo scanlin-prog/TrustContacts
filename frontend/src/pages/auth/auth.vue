@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // imports
 import { computed, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { toTypedSchema } from '@vee-validate/yup';
 import * as yup from 'yup';
 
@@ -12,6 +13,7 @@ import BaseFormInput from '@components/base/form/BaseFormInput.vue';
 import { useAuthStore } from '@store/auth';
 
 // routes and stores
+const router = useRouter();
 const authStore = useAuthStore();
 
 // vars
@@ -64,7 +66,7 @@ const validationSchemaLogin = toTypedSchema(
     password: yup
       .string()
       .required('Пароль обязателен для заполнения')
-      .min(6, 'Минимальное количество символов: 6'),
+      .min(4, 'Минимальное количество символов: 4'),
   }),
 );
 
@@ -91,7 +93,7 @@ const validationSchemaRegister = toTypedSchema(
     password: yup
       .string()
       .required('Пароль обязателен для заполнения')
-      .min(6, 'Минимальное количество символов: 6'),
+      .min(4, 'Минимальное количество символов: 4'),
   }),
 );
 
@@ -136,6 +138,8 @@ async function onSubmit() {
     } else {
       await authStore.register(formData);
     }
+
+    router.push({ path: '/' });
   } catch (error) {
     console.error('Ошибка авторизации/регистрации', error);
   }

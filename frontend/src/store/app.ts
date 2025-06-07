@@ -1,61 +1,132 @@
 import { defineStore } from 'pinia';
+import { useApiFetch } from '@composables/useApiFetch';
 
 import type { IContact } from '@models/contact';
-
-interface IContactResponse extends IContact {
-  id: string;
-  lastInteractive: string;
-}
+import type {
+  IContactResponse,
+  IContactAddRequest,
+  IContactDeleteResponse,
+} from '@models/api/contacts';
 
 interface IAppState {
   contacts: IContactResponse[];
 }
 
-const EXPAMPLE_CONTACTS = [
-  {
-    id: '1',
-    name: 'Андрей',
-    phone: '+79223156070',
-    email: 'andre@mail.ru',
-    tags: ['раз', 'два', 'три'],
-    lastInteractive: '2025-02-31',
-  },
-  {
-    id: '2',
-    name: 'Владимир',
-    phone: '+79669990022',
-    email: 'vlad@gmail.com',
-    tags: ['тег1', 'тег3', 'тег5', 'тег 6'],
-    lastInteractive: '2025-03-12',
-  },
-  {
-    id: '3',
-    name: 'Зариф',
-    phone: '+79331112233',
-    email: 'zar@yandex.zi',
-    tags: ['единственныйтег'],
-    lastInteractive: '2025-04-04',
-  },
-  {
-    id: '4',
-    name: 'Рафаэль',
-    phone: '+791144433223',
-    email: 'raf@raf.en',
-    tags: [],
-    lastInteractive: '2025-04-05',
-  },
-];
-
 export const useAppStore = defineStore('app', {
   state: (): IAppState => ({
-    contacts: EXPAMPLE_CONTACTS,
+    contacts: [],
   }),
   actions: {
     async getContacts() {
-      return this.contacts;
+      const url = '/api/contacts';
+
+      const { data, error, status } =
+        await useApiFetch<IContactResponse[]>(url);
+
+      if (status === 200) {
+        if (data) {
+          this.contacts = data;
+        }
+      }
+
+      if (error) {
+        throw new Error(JSON.stringify(error));
+      }
+
+      return { data, error, status };
     },
-    addContact(request: IContactResponse) {
-      this.contacts.push(request);
+    async addContact(request: IContactAddRequest) {
+      const url = '/api/contacts';
+
+      const { data, error, status } = await useApiFetch<IContactResponse>(url, {
+        cache: 'no-cache',
+        method: 'post',
+        body: JSON.stringify(request),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (status === 201) {
+        if (data) {
+          this.contacts.push(data);
+        }
+      }
+
+      if (error) {
+        throw new Error(JSON.stringify(error));
+      }
+
+      return { data, error, status };
+    },
+    async updateContact(id: string, request: IContactAddRequest) {
+      const url = `/api/contacts/${id}`;
+
+      const { data, error, status } = await useApiFetch<IContactResponse>(url, {
+        cache: 'no-cache',
+        method: 'put',
+        body: JSON.stringify(request),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (status === 200) {
+        if (data) {
+          await this.getContacts();
+        }
+      }
+
+      if (error) {
+        throw new Error(JSON.stringify(error));
+      }
+
+      return { data, error, status };
+    },
+    async deleteContact(id: string) {
+      const url = `/api/contacts/${id}`;
+
+      const { data, error, status } = await useApiFetch<IContactDeleteResponse>(
+        url,
+        {
+          cache: 'no-cache',
+          method: 'delete',
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
+
+      if (status === 200) {
+        if (data) {
+          await this.getContacts();
+        }
+      }
+
+      if (error) {
+        throw new Error(JSON.stringify(error));
+      }
+
+      return { data, error, status };
+    },
+    async searchContacts(query: string) {
+      const url = `/api/search`;
+
+      const { data, error, status } = await useApiFetch<IContactResponse[]>(
+        url,
+        {
+          cache: 'no-cache',
+          method: 'post',
+          body: JSON.stringify({
+            query: query,
+          }),
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
+
+      if (status === 200) {
+        if (data) {
+          this.contacts = data;
+        }
+      }
+
+      if (error) {
+        throw new Error(JSON.stringify(error));
+      }
+
+      return { data, error, status };
     },
   },
 });

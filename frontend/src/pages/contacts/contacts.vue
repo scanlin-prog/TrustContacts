@@ -1,23 +1,44 @@
 <script setup lang="ts">
 // imports
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { Form } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/yup';
+import * as yup from 'yup';
 
 import BaseIcon from '@components/base/icon/BaseIcon.vue';
 import BaseButton from '@components/base/button/BaseButton.vue';
+import BaseFormInput from '@components/base/form/BaseFormInput.vue';
 import BlockContact from '@components/block/cell/BlockContact.vue';
 
+import { useAuthStore } from '@store/auth';
 import { useAppStore } from '@store/app';
-
-// types
-
-// vars
 
 // routes and stores
 const router = useRouter();
+const authStore = useAuthStore();
 const appStore = useAppStore();
 
+// vars
+const schemaFields = {
+  search: {
+    name: 'search',
+    placeholder: 'Поиск по имени',
+  },
+};
+
+const validationSchema = toTypedSchema(
+  yup.object().shape({
+    search: yup
+      .string()
+      .min(2, ({ min }: { min: number }) => `Не менее ${min} символов`)
+      .matches(/^[А-Яа-я]+$/, 'Только кириллица'),
+  }),
+);
+
 // refs
+const query = ref('');
+
 const contactList = computed(() => {
   return appStore.contacts;
 });
@@ -26,6 +47,32 @@ const contactList = computed(() => {
 function followToPage() {
   router.push('/add-contact');
 }
+
+async function handleLogout() {
+  try {
+    await authStore.logout();
+
+    router.push('/auth');
+  } catch (error) {
+    console.error('Ошибка при выходе с приложения', error);
+  }
+}
+
+async function handleSearch() {
+  try {
+    await appStore.searchContacts(query.value);
+  } catch (error) {
+    console.error('Ошибка при поиске контактов', error);
+  }
+}
+
+function resetSearch() {
+  query.value = '';
+}
+
+onMounted(async () => {
+  await appStore.getContacts();
+});
 </script>
 
 <template>
@@ -35,34 +82,82 @@ function followToPage() {
     </a>
     <div class="contacts-table">
       <h2 class="contacts-table__title">Список контактов</h2>
-      <div class="contacts-table__content">
-        <div class="contacts-table__header">
-          <p class="contacts-table__header-title">Имя</p>
-          <p class="contacts-table__header-value">Телефон</p>
-          <p class="contacts-table__header-value">Почта</p>
-          <p class="contacts-table__header-value">Теги</p>
-          <p class="contacts-table__header-value">Дата изменений</p>
-          <p class="contacts-table__header-title">Действия</p>
-        </div>
-        <ul class="contacts-table__list">
-          <li
-            v-for="item in contactList"
-            :key="item.id"
-            class="contacts-table__item"
-          >
-            <BlockContact :data="item" />
-          </li>
-        </ul>
-      </div>
-      <BaseButton
-        class="contacts__btn-back"
-        :secondary="true"
-        :full="true"
-        @follow="followToPage"
+      <Form
+        v-slot="{ handleSubmit, isSubmitting }"
+        class="contacts__form"
+        novalidate
+        :validation-schema="validationSchema"
       >
-        <span>Добавить контакт</span>
-        <BaseIcon icon="plus" />
-      </BaseButton>
+        <form
+          class="contacts__form-inner"
+          @submit.prevent="handleSubmit(handleSearch)"
+        >
+          <BaseFormInput v-model="query" :schema="schemaFields.search" />
+          <div class="contacts__form-btns">
+            <BaseButton
+              class="contacts__form-submit"
+              button-type="submit"
+              :disabled="isSubmitting"
+              :primary="true"
+            >
+              <span>Найти</span>
+            </BaseButton>
+            <BaseButton
+              class="contacts__form-btn"
+              :secondary="true"
+              @click="resetSearch"
+            >
+              <span>Очистить</span>
+            </BaseButton>
+          </div>
+        </form>
+      </Form>
+      <div class="contacts-table__content-wrap">
+        <div class="contacts-table__content">
+          <div class="contacts-table__header">
+            <p class="contacts-table__header-title">Имя</p>
+            <p class="contacts-table__header-value">Телефон</p>
+            <p class="contacts-table__header-value">Почта</p>
+            <p class="contacts-table__header-value">Теги</p>
+            <p class="contacts-table__header-value">Дата изменений</p>
+            <p class="contacts-table__header-title">Действия</p>
+          </div>
+          <ul v-if="contactList.length" class="contacts-table__list">
+            <li
+              v-for="item in contactList"
+              :key="item.id"
+              class="contacts-table__item"
+            >
+              <BlockContact :data="item" />
+            </li>
+          </ul>
+          <div v-else class="empty">
+            <p class="empty__title">Контактов нет</p>
+            <p class="empty__text">
+              Добавьте свой первый контакт, кликнув по кнопке ниже
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="contacts__btns">
+        <BaseButton
+          class="contacts__btn-back"
+          :secondary="true"
+          :full="true"
+          @follow="followToPage"
+        >
+          <span>Добавить контакт</span>
+          <BaseIcon icon="plus" />
+        </BaseButton>
+        <BaseButton
+          class="contacts__btn-back"
+          :primary="true"
+          :full="true"
+          @click="handleLogout"
+        >
+          <span>Выйти</span>
+        </BaseButton>
+      </div>
     </div>
   </div>
 </template>
@@ -84,6 +179,7 @@ function followToPage() {
 }
 
 .contacts-table {
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -91,6 +187,17 @@ function followToPage() {
   width: 100%;
   max-width: 1024px;
   margin: 0 auto;
+}
+
+.contacts-table__content-wrap {
+  overflow: scroll;
+}
+
+.contacts-table__content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 1024px;
 }
 
 .contacts-table__header {
@@ -124,5 +231,51 @@ function followToPage() {
 
 .contacts__btn-back {
   margin-top: 10px;
+}
+
+.contacts__form {
+  form {
+    display: flex;
+    gap: 20px;
+
+    @include phone {
+      flex-direction: column;
+      gap: 12px;
+    }
+  }
+}
+
+.contacts__form-btns {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  @include phone {
+    flex-direction: column;
+    gap: 8px;
+
+    .btn {
+      width: 100%;
+    }
+  }
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+
+  margin-top: 20px;
+}
+
+.empty__title,
+.empty__text {
+  font-size: 20px;
+  color: #ffc81f;
+}
+
+.empty__text {
+  font-size: 14px;
 }
 </style>
